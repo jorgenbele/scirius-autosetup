@@ -1,0 +1,61 @@
+# Where is suricata rules supposed to be stored?
+SCIRIUS_LOGS_PATH=_scirius # used for elasticsearch logging
+SURICATA_RULES_PATH=_suricata
+ELASTICSEARCH_LOG_PATH=_scirius/es.log
+
+.PHONY: help all start dirs install-deps static hunt django webpack
+
+all: install-deps static hunt django start
+
+help:
+	@ echo "Usage:"
+	@ echo "start			Starts scirius"
+	@ echo "start-watch		Starts scirius but reloads it when files change"
+	@ echo "install-deps	Install all dependencies"
+	@ echo "static			Build and setup static files"
+	@ echo "hunt			Build and setup hunt using webpack and npm run build"
+	@ echo "django			Setup django (migrations, suricata, ...)"
+	@ echo "webpack			Rebuild and collect static files"
+
+start:
+	@ echo "== Running migrations =="
+	python manage.py migrate
+	@ echo "==  Starting scirius  =="
+	python manage.py runserver 0.0.0.0:8000
+
+dirs:
+	mkdir -p $(SCIRIUS_LOGS_PATH) $(SURICATA_RULES_PATH)
+
+install-deps: dirs
+	pip install --upgrade six
+	pip install -r requirements.txt
+	pip install elasticsearch-curator
+	npm install npm@latest webpack@3.11
+	npm install
+
+static: dirs
+	ln -sf rules/static static
+
+webpack:
+	node_modules/.bin/webpack
+	python manage.py collectstatic --noinput
+
+hunt: dirs
+	(cd hunt && npm install && npm run build)
+	node_modules/.bin/webpack
+	python manage.py collectstatic --noinput
+
+django: dirs
+	python manage.py migrate --noinput
+	python manage.py loaddata files/scirius.json
+	python manage.py createcachetable my_cache_table
+	python manage.py addsource "ETOpen Ruleset" https://rules.emergingthreats.net/open/suricata-3.0/emerging.rules.tar.gz http sigs
+	python manage.py addsource "SSLBL abuse.ch" https://sslbl.abuse.ch/blacklist/sslblacklist.rules http sig
+	python manage.py addsource "PT Research Ruleset" https://github.com/ptresearch/AttackDetection/raw/master/pt.rules.tar.gz http sigs
+	python manage.py defaultruleset "Default SELKS ruleset"
+	python manage.py disablecategory "Default SELKS ruleset" stream-events
+	python manage.py addsuricata suricata "Suricata on SELKS" $(SURICATA_RULES_PATH) "Default SELKS ruleset"
+	python manage.py updatesuricata
+	python manage.py collectstatic --noinput
+	python manage.py makemigrations --noinput
+	python manage.py migrate --noinput
