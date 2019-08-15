@@ -15,14 +15,24 @@ LOGGING = {
         'elasticsearch': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            #'filename': environ.get('ELASTICSEARCH_LOG_PATH', 'es.log'),
             'filename': 'es.log',
-            'formatter': 'raw',
+            'formatter': 'fileformat',
+        },
+        'humio': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'humio.log',
+            'formatter': 'fileformat',
         },
     },
     'loggers': {
         'elasticsearch': {
             'handlers': ['elasticsearch'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'humio': {
+            'handlers': ['humio'],
             'level': 'INFO',
             'propagate': True,
         },
@@ -32,3 +42,4 @@ LOGGING = {
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+USE_SURICATA_STATS = True

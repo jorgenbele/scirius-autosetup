@@ -1,6 +1,6 @@
 # Only used if 'make clone' is called
 SCIRIUS_GIT_REPO := git@github.com:potrik98/scirius
-SCIRIUS_GIT_BRANCH := master
+SCIRIUS_GIT_BRANCH := develop
 
 # Directory the git repo is cloned to, or scirius
 # is expected to be.
@@ -43,5 +43,4 @@ init: $(SCIRIUS_DIR)
 	cp Makefile_scirius $(SCIRIUS_DIR)/Makefile
 	mkdir -p $(SCIRIUS_DIR)/files
 	cp $(INITIAL_DB_JSON) $(SCIRIUS_DIR)/files/scirius.json
-	$(MAKE) -C $(SCIRIUS_DIR)
 	(cd $(SCIRIUS_DIR) && $(MAKE) install-deps static hunt django)

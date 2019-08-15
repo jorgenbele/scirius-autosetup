@@ -1,0 +1,30 @@
+#+TITLE: Scirius Autosetup
+
+This is a pair of makefiles used to setup a development instance of Scirius automatically.
+
+* Usage
+#+BEGIN_SRC SHELL
+make [help | clone | start | init]
+#+END_SRC
+
+* make help
+#+BEGIN_SRC SHELL
+Commands:
+clone       Clone scirius source from github
+start       Start scirius while watching for changes
+init        Setup install dependencies, build static for scirius
+#+END_SRC
+
+* make clone
+Gets a clone of scirius (can be overridden by setting the ~SCIRIUS_GIT_REPO~
+variable) and checks out the ~SCIRIUS_GIT_BRANCH~.
+
+* make start
+Copies the local_settings.py file from ~LOCAL_SETTINGS_PATH~ ~SCIRIUS_DIR~ and
+starts two ~entr~ processes, one for watching the ~LOCAL_SETTINGS_PATH~ file and
+one for watching all python files in ~SCIRIUS_DIR~. This is used to restart
+scirius on any changes to local settings or python files.
+
+* make init
+Sets up (build and install of python packages, node modules) the scirius located
+at ~SCIRIUS_DIR~.
